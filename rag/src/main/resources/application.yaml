@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: agent-scope-study-rag
+  main:
+    web-application-type: none
+
+logging:
+  level:
+    root: INFO
+    io.agentscope: INFO
+
+rag:
+  # 可选：vector、keyword、embedding、top-k、none（只启动，不运行示例）
+  example: vector

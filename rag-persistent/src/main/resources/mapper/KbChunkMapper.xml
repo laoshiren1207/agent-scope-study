@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.laoshiren.agent.persistent.mapper.KbChunkMapper">
+    <!-- 将数据库列按构造参数顺序组装成 Hit；两个 JSONB 列由 JsonbTypeHandler 读取为 Map。 -->
+    <resultMap id="hit" type="com.laoshiren.agent.persistent.api.ChunkResponses$Hit">
+        <constructor>
+            <idArg column="id" javaType="java.lang.Long"/>
+            <arg column="document_id" javaType="java.lang.Long"/>
+            <arg column="document_version" javaType="java.lang.Integer"/>
+            <arg column="chunk_no" javaType="java.lang.Integer"/>
+            <arg column="title" javaType="java.lang.String"/>
+            <arg column="content" javaType="java.lang.String"/>
+            <arg column="source_uri" javaType="java.lang.String"/>
+            <arg column="source_locator" javaType="java.util.Map"
+                 typeHandler="com.laoshiren.agent.persistent.typehandler.JsonbTypeHandler"/>
+            <arg column="metadata" javaType="java.util.Map"
+                 typeHandler="com.laoshiren.agent.persistent.typehandler.JsonbTypeHandler"/>
+            <arg column="score" javaType="_double"/>
+        </constructor>
+    </resultMap>
+
+    <update id="markReady">
+        UPDATE public.kb_chunk
+        SET embedding = #{embedding,typeHandler=com.laoshiren.agent.persistent.typehandler.VectorTypeHandler},
+            embedded_at = CURRENT_TIMESTAMP, status = 'ready', error_message = NULL
+        WHERE id = #{id} AND status = 'pending' AND deleted_at IS NULL
+    </update>
+
+    <update id="markFailed">
+        UPDATE public.kb_chunk SET status = 'failed', error_message = #{error}
+        WHERE id = #{id} AND status = 'pending' AND deleted_at IS NULL
+    </update>
+
+    <!--
+        检索步骤：
+        1. 在指定租户、知识库和 profile 内，筛选 ready、未删除且有向量的片段。
+        2. 用 pgvector 的余弦距离运算符 <=> 比较片段向量和问题向量；XML 中写为 &lt;=&gt;。
+        3. score = 1 - distance；score >= minScore 等价于 distance <= 1 - minScore。
+        4. 距离越小越相似，升序取前 limit 条，返回原文和来源信息。
+    -->
+    <select id="search" resultMap="hit">
+        SELECT id, document_id, document_version, chunk_no, title, content, source_uri,
+               source_locator, metadata, 1 - distance AS score
+        FROM (
+            SELECT id, document_id, document_version, chunk_no, title, content, source_uri,
+                   source_locator, metadata,
+                   embedding &lt;=&gt; #{embedding,typeHandler=com.laoshiren.agent.persistent.typehandler.VectorTypeHandler} AS distance
+            FROM public.kb_chunk
+            WHERE tenant_id = #{tenantId} AND knowledge_base_id = #{knowledgeBaseId}
+              AND embedding_profile = #{profile} AND status = 'ready' AND deleted_at IS NULL
+              AND embedding IS NOT NULL
+        ) candidates
+        WHERE distance &lt;= 1 - #{minScore}
+        ORDER BY distance ASC, id ASC
+        LIMIT #{limit}
+    </select>
+
+    <sql id="versionScope">
+        tenant_id = #{scope.tenantId} AND knowledge_base_id = #{scope.knowledgeBaseId}
+        AND document_id = #{scope.documentId} AND document_version = #{scope.documentVersion}
+        AND embedding_profile = #{profile} AND deleted_at IS NULL
+    </sql>
+
+    <update id="archiveVersion">
+        UPDATE public.kb_chunk SET status = 'archived'
+        WHERE <include refid="versionScope"/> AND status != 'archived'
+    </update>
+
+    <update id="deleteVersion">
+        UPDATE public.kb_chunk SET deleted_at = CURRENT_TIMESTAMP
+        WHERE <include refid="versionScope"/>
+    </update>
+</mapper>

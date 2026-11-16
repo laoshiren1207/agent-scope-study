@@ -1,0 +1,46 @@
+server:
+  port: ${SERVER_PORT:8083}
+
+spring:
+  application:
+    name: agent-scope-study-rag-persistent
+  profiles:
+    active: dev
+  servlet:
+    multipart:
+      max-file-size: 1MB
+      max-request-size: 2MB
+  datasource:
+    url: ${db_URL}
+    username: postgres
+    password: 123456
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+rag:
+  rerank:
+    # true 启用重排；false 跳过重排及其分数过滤，直接使用向量召回结果回答。
+    enable: ${RERANK_ENABLE:true}
+    # TEI 根地址，TeiReranker 会追加 /rerank。
+    base-url: ${RERANK_BASE_URL:http://192.168.31.67:8001}
+    timeout-seconds: 60
+    # 向量召回后，重排最多保留 3 片，再按重排分数过滤。
+    top-k: 3
+    # 示例初始值，需根据实际重排模型及测试问题调整。
+    min-score: 0.3
+  embedding:
+    base-url: http://192.168.31.67:31419/v1
+    api-key: 'EMPTY'
+    model: Qwen3-Embedding-4B
+    dimensions: 2560
+    # 模型实际版本、维度或预处理改变时，必须换一个 profile。
+    profile: ${EMBEDDING_PROFILE:qwen3embedding-2560-raw-v1}
+    timeout-seconds: 60
+  chat:
+    base-url: http://192.168.31.6:32354/v1
+    api-key: 'EMPTY'
+    model: qwen3.8-27b
+    timeout-seconds: 120
