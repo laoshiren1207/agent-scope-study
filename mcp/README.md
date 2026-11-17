@@ -23,11 +23,11 @@ MCP 可以让 Agent 通过统一协议接入外部工具和数据服务，AgentS
 MCP（Model Context Protocol，模型上下文协议）约定了 AI 应用如何发现和调用外部工具。 比如：有哪些工具、每个工具接收什么参数、怎样调用、结果怎样返回。
 
 
-先带着这个问题往下看：我们已经会用 @Tool 了，为什么还需要 MCP？
+先带着这个问题往下看：我们已经会用 `@Tool `了，为什么还需要 MCP？
 
-先回到之前的 @Tool。
+先回到之前的 `@Tool`。
 
-你在 [BaseExample.java (line 84)] 中定义了：
+你在 `BaseExample.java` 中定义了：
 
 ```java
 @Tool(name = "query_order", description = "根据订单号查询订单状态", readOnly = true)
@@ -117,7 +117,7 @@ MCP 规定通信方式，工具选择仍由模型和应用的编排完成。
 
 已经能用`@Tool`查询订单了，为什么还需要 MCP？
 
-上次用“本地方法”和“另一个程序”帮助你区分。这里再精确一点：@Tool 标注的方法内部也可以调用远程接口；MCP 的主要价值是统一工具的描述、发现和调用方式。
+上次用“本地方法”和“另一个程序”帮助你区分。这里再精确一点：`@Tool` 标注的方法内部也可以调用远程接口；MCP 的主要价值是统一工具的描述、发现和调用方式。
 
 假设你有一个订单系统，现在三个 AI 应用都想接入它：
 
@@ -160,9 +160,9 @@ Client 按协议发送的含义是：
 应用将工具说明提供给模型。用户问“A001 发货了吗”时，模型根据名称、描述和参数结构，提出调用订单查询工具；应用执行调用，再把查询结果交给模型组织回答。
 
 
-## MCP SERVER 
+## MCP Server
 
-设计一个订单 MCP Server，让客户端能够发现并调用 queryOrder(orderId)。
+设计一个订单 MCP Server，让客户端能够发现并调用 `queryOrder(orderId)`。
 
 我们先为这个练习确定一份工具规则：
 
@@ -304,7 +304,7 @@ public McpServerFeatures.SyncToolSpecification queryOrderSpecification(
 3. `CallToolResult`：包装返回结果。`addTextContent(result)` 将字符串放入 MCP 的文本结果中；`isError(true)` 表示执行失败，`false` 表示执行成功。
 
 #### MCP Server 定义
-然后再创建 MCP Server，把这个 queryOrderSpecification 注册进去，并接通 HTTP 的 `/mcp` 入口。
+然后再创建 MCP Server，把这个 `queryOrderSpecification` 注册进去，并接通 HTTP 的 `/mcp` 入口。
 
 
 创建 HTTP 传输组件。
@@ -334,7 +334,7 @@ public McpSyncServer mcpServer(
             .build();
 }
 ```
-如果需要多个`mcp tool`的话，就需要注册多个 `McpServerFeatures.SyncToolSpecification`，然后再将这些tools传进去。类似`.tools(orderTools, deliveryTools)`。
+如果需要多个`mcp tool`的话，就需要注册多个 `McpServerFeatures.SyncToolSpecification`，然后再将这些`tools`传进去。类似`.tools(orderTools, deliveryTools)`。
 
 
 第三步：把传输组件映射到 `/mcp`。
@@ -358,8 +358,8 @@ public ServletRegistrationBean<HttpServletStreamableServerTransportProvider>
 ```
 
 注意两个设置：
-- @DependsOn("mcpServer")：确保先创建 MCP Server，再创建这个 Servlet 注册 Bean。
-- setAsyncSupported(true)：开启 Servlet 异步请求支持，传输组件处理流式连接时会用到它。
+- `@DependsOn("mcpServer")`：确保先创建 MCP Server，再创建这个 Servlet 注册 Bean。
+- `setAsyncSupported(true)`：开启 Servlet 异步请求支持，传输组件处理流式连接时会用到它。
 
 这样组装后，我们设计的调用路径就是：
 
@@ -519,7 +519,7 @@ toolkit.registerMcpClient(inventoryClient).block();
 
 之后，模型看到工具描述和参数结构，生成工具调用；AgentScope 通过 MCP 客户端执行，再把结果交回模型生成回答。真正发送 MCP 请求的是客户端，模型负责决定调用什么以及传什么参数。
 
-## RAG MCP 
+### RAG MCP 
 
 结合之前的`rag`，在加上 MCP 做一个 example 。订单A002还没有发货，是可以退货的，退货的政策在 `rag-persistant` 里。
 
@@ -554,7 +554,3 @@ flowchart LR
 你现在已经接触了核心流程：
 
 定义工具 → 发布 MCP 服务 → 客户端发现工具 → 注册到 AgentScope → 模型选择工具 → 执行并生成回答。
-
-刚才准备继续讲的“观察工具调用、处理资料不足”，属于综合案例的验证和深化。
-
-所以，可以把 MCP 基础学习告一段落。完整规范和生产环境的工程细节可以后续按需要补充；当前最值得做的是把 RAG + MCP 案例跑通，并确认自己能解释每一步由谁执行。
