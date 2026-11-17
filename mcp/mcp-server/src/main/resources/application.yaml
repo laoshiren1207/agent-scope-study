@@ -1,0 +1,13 @@
+server:
+  port: ${SERVER_PORT:9080}
+
+spring:
+  application:
+    name: agent-scope-study-mcp-server
+  profiles:
+    active: dev
+  servlet:
+    multipart:
+      max-file-size: 1MB
+      max-request-size: 2MB
+
