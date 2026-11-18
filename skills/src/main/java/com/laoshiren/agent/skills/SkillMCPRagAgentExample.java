@@ -1,0 +1,64 @@
+package com.laoshiren.agent.skills;
+
+import com.laoshiren.agent.skills.tools.PolicyTool;
+import io.agentscope.core.ReActAgent;
+import io.agentscope.core.event.AgentResultEvent;
+import io.agentscope.core.event.ToolCallStartEvent;
+import io.agentscope.core.event.ToolResultEndEvent;
+import io.agentscope.core.message.UserMessage;
+import io.agentscope.core.skill.repository.ClasspathSkillRepository;
+import io.agentscope.core.tool.Toolkit;
+import io.agentscope.core.tool.mcp.McpClientBuilder;
+import io.agentscope.core.tool.mcp.McpClientWrapper;
+import io.agentscope.extensions.model.openai.OpenAIChatModel;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+
+@Slf4j
+public class SkillMCPRagAgentExample {
+
+
+    public static void main(String[] args) {
+        try (ClasspathSkillRepository skillRepository = new ClasspathSkillRepository("skills")){
+            // mcp tools
+            McpClientWrapper client = McpClientBuilder.create("order-client")
+                    .streamableHttpTransport("http://127.0.0.1:9080/mcp")
+                    .buildSync();
+
+            Toolkit toolkit = new Toolkit();
+            toolkit.registerTool(new PolicyTool());
+            toolkit.registerMcpClient(client).block();
+
+            OpenAIChatModel model = new OpenAIChatModel.Builder()
+                    .baseUrl("http://192.168.31.6:32354/v1")
+                    .modelName("qwen3.8-27b")
+                    .apiKey("")
+                    .stream(true)
+                    .build();
+
+            try (ReActAgent agent = ReActAgent.builder()
+                    .name("after-sales-assistant")
+                    .sysPrompt("你是售后客服")
+                    .model(model)
+                    .skillRepository(skillRepository)
+                    .toolkit(toolkit)
+                    .build()) {
+
+                agent.streamEvents(new UserMessage("我想退款，该怎么办？我的订单是A002"))
+                        .doOnNext(event -> {
+                            if (event instanceof ToolCallStartEvent call) {
+                                log.info("模型请求工具：{}" , call.getToolCallName());
+                            } else if (event instanceof ToolResultEndEvent result) {
+                                log.info("工具 {} \t执行状态：{}", result.getToolCallName(), result.getState());
+                            } else if (event instanceof AgentResultEvent result) {
+                                log.info("回复：{}" , result.getResult().getTextContent());
+                            }
+                        })
+                        .blockLast();
+            }
+        } catch (IOException ignore) {
+
+        }
+    }
+}
