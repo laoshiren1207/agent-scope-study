@@ -1,0 +1,30 @@
+server:
+  port: ${SERVER_PORT:10080}
+
+spring:
+  application:
+    name: agent-scope-study-general-skill
+  profiles:
+    active: dev
+  servlet:
+    multipart:
+      max-file-size: 1MB
+      max-request-size: 2MB
+  datasource:
+    url: ${db_URL}
+    username: postgres
+    password: 123456
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+# 支持工具调用的 OpenAI 兼容模型；未配置时仅 Agent 调用接口返回 503。
+skills:
+  agent:
+    base-url: http://192.168.31.6:32354/v1
+    api-key: 'EMPTY'
+    modelName: qwen3.8-27b
+    timeout-seconds: 120
+    max-iters: ${SKILLS_AGENT_MAX_ITERS:4}
