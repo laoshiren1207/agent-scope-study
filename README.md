@@ -17,15 +17,15 @@ agent-scope-study/
 └── skills/                 # Agent Skill 加载与使用
 ```
 
-| 模块 | artifactId | 代码包 | 依赖与用途                                                                                 |
-| --- | --- | --- |---------------------------------------------------------------------------------------|
-| `base` | `agent-scope-study-base` | `com.laoshiren.agent` | 保留基础示例、Spring MVC 流式接口和 Spring Boot 测试                                                |
-| `rag` | `agent-scope-study-rag` | `com.laoshiren.agent.rag` | Core、OpenAI 模型扩展和 `agentscope-extensions-rag-simple`                                  |
+| 模块               | artifactId | 代码包 | 依赖与用途                                                                                 |
+|------------------| --- | --- |---------------------------------------------------------------------------------------|
+| `base`           | `agent-scope-study-base` | `com.laoshiren.agent` | 保留基础示例、Spring MVC 流式接口和 Spring Boot 测试                                                |
+| `rag`            | `agent-scope-study-rag` | `com.laoshiren.agent.rag` | Core、OpenAI 模型扩展和 `agentscope-extensions-rag-simple`                                  |
 | `rag-persistent` | `rag-persistent` | `com.laoshiren.agent.persistent` | MyBatis-Plus、PostgreSQL pgvector、AgentScope 向量化和问答；见 [运行说明](rag-persistent/README.md) |
-| `mcp` | `agent-scope-study-mcp` | `com.laoshiren.agent.mcp` | Core 与 OpenAI 模型扩展；MCP SDK 由 Core 传递引入                                                |
-| `skills` | `agent-scope-study-skills` | `com.laoshiren.agent.skills` | Core 与 OpenAI 模型扩展，用于后续 Skill 示例                                                      |
-| `skills` | `agent-scope-study-skills` | `com.laoshiren.agent.skills` | 个人 Skill 示例                                                                           |
-| `multi-agent` | `agent-scope-study-multi-agent` | `com.laoshiren.agent.multiagent` | Core 与 OpenAI 模型扩展，用于后续多 Agent 示例                                                     |
+| `mcp`            | `agent-scope-study-mcp` | `com.laoshiren.agent.mcp` | Core 与 OpenAI 模型扩展；MCP SDK 由 Core 传递引入                                                |
+| `skills`         | `agent-scope-study-skills` | `com.laoshiren.agent.skills` | Core 与 OpenAI 模型扩展，用于后续 Skill 示例                                                      |
+| `general-skills` | `agent-scope-study-skills` | `com.laoshiren.agent.skills` | 个人 Skill 示例                                                                           |
+| `multi-agent`    | `agent-scope-study-multi-agent` | `com.laoshiren.agent.multiagent` | Core 与 OpenAI 模型扩展，用于后续多 Agent 示例                                                     |
 
 
 
