@@ -10,7 +10,7 @@ import java.time.Duration;
 @Slf4j
 public class RoutingAgentsExample {
 
-    enum Route { LOGISTICS, INVOICE, CLARIFY }
+    enum Route {LOGISTICS, INVOICE, CLARIFY}
 
     public static void main(String[] args) {
         OpenAIChatModel model = OpenAIChatModel.builder()
@@ -20,16 +20,21 @@ public class RoutingAgentsExample {
                 .stream(false)
                 .build();
 
-        String question = args.length == 0 ? "订单 A001 的包裹到哪了？" : String.join(" ", args);
+        String question = "订单 A001 的包裹到哪了？";
 
-        try (ReActAgent logisticsAgent = ReActAgent.builder()
-                .name("logistics").model(model)
+        ReActAgent logisticsAgent = ReActAgent.builder()
+                .name("logistics")
+                .model(model)
                 .sysPrompt("你是物流客服。只根据给定的物流记录回答，核对订单号，不猜测送达时间。")
                 .build();
-             ReActAgent invoiceAgent = ReActAgent.builder()
-                     .name("invoice").model(model)
-                     .sysPrompt("你是发票客服。只根据给定的开票说明回答，不声称已经开票。")
-                     .build()) {
+
+        ReActAgent invoiceAgent = ReActAgent.builder()
+                .name("invoice")
+                .model(model)
+                .sysPrompt("你是发票客服。只根据给定的开票说明回答，不声称已经开票。")
+                .build();
+
+        try (logisticsAgent; invoiceAgent) {
 
             Route selected = route(question);
             log.info("用户问题：{}；选择的路由：{}", question, selected);
@@ -49,8 +54,12 @@ public class RoutingAgentsExample {
         boolean logistics = question.contains("包裹") || question.contains("物流") || question.contains("快递");
         boolean invoice = question.contains("发票") || question.contains("开票");
 
-        if (logistics && !invoice) return Route.LOGISTICS;
-        if (invoice && !logistics) return Route.INVOICE;
+        if (logistics && !invoice) {
+            return Route.LOGISTICS;
+        }
+        if (invoice && !logistics) {
+            return Route.INVOICE;
+        }
         return Route.CLARIFY; // 两类都命中，或都没命中
     }
 

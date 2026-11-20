@@ -252,7 +252,25 @@ public class ParallelAgentsExample {
 ```
 
 ```text
+10:05:15.065 [pool-1-thread-2] INFO com.laoshiren.agent.multiagent.ParallelAgentsExample -- analyst: 
 
+退货退款政策如下：
+
+1. **未发货订单**
+   - 可直接申请退款。
+
+2. **已发货订单**
+   - 不能直接退款。
+   - 需要等签收后，再按照退货流程申请退货退款。
+
+3. **退款到账时间**
+   - 当前资料未说明具体到账时间。
+10:05:18.958 [pool-1-thread-1] INFO com.laoshiren.agent.multiagent.ParallelAgentsExample -- order: 
+
+订单A0001 未发货。
+10:05:22.847 [main] INFO com.laoshiren.agent.multiagent.ParallelAgentsExample -- customer-service: 
+
+您的订单 A0001 目前显示未发货。根据退货退款政策，未发货订单可以直接申请退款。具体能否成功，以实际申请和审核结果为准。
 ```
 
 ## 任务路由
