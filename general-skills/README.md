@@ -11,9 +11,8 @@
 | 扩展信息 | `extra_frontmatter` | 保存其他 YAML 属性，避免每增加一种属性就改表结构 |
 | 管理信息 | `status`、`revision`、创建及更新时间 | 控制可用性、处理并发修改、展示维护情况 |
 
-其中有两个细节：
+其中有个细节：
 - 同一租户、同一用户下，`name` 唯一；不同用户可以拥有同名技能。
-- extra_frontmatter 不允许重复保存 name、`description`，避免同一属性出现两个不同的值。
  
 把内容存进数据库，也让分页、归属过滤、唯一性约束和版本条件更新可以放在同一套持久化机制里完成。
 
@@ -318,7 +317,6 @@ sequenceDiagram
 
 
 ```shell
-/Users/laoshiren/laoshiren/demo/agent-scope-study/general-skills/
 ├── pom.xml                              # Maven 模块配置：依赖、编译和 Spring Boot 启动配置
 ├── README.md                            # 项目说明：技能设计、表结构、Middleware 和调用追踪
 └── src/
